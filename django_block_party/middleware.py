@@ -71,9 +71,10 @@ class TemplateProcessor(object):
     def content(self):
         #return "\n".join(t['template'].name for t in self.templates if 'template' in t)
         c = ""
+        rendered_blocks = []
         
         for t in self.templates:
-            c += ("\nTemplate %s" % t['template'].name)
+            c += ("\nTemplate %s {{{bp1" % t['template'].name)
             #if 'context' in t:
             #   for k in t['context']:
             #       c += ("\n    v: %s" % k)
@@ -83,7 +84,12 @@ class TemplateProcessor(object):
             for n in t['template'].nodelist.get_nodes_by_type(BlockNode):
                 c+= ("\n        block: %s" % str(n.name))
                 try:
-                    c+= ("\n            %s" % n.render(t['context']).replace("\n","\n            "))
+                    ren = n.render(t['context'])
+                    if not str( ren ) == "" and not n.name in rendered_blocks:
+                        rendered_blocks.append(n.name)
+                        c+= "\n             render: {{{bp"
+                        c+= ("\n            %s" % ren.replace("\n","\n            "))
+                        c+= "\n             bp}}}"
                 except:
                     c+= ("\n            (Context Render Failed)")
 
