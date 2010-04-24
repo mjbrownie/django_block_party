@@ -1,0 +1,20 @@
+Django Block Party
+
+A django middleware component and vim plugin that offers an enhanced view of a
+requests template tree and block nodes
+
+usage:
+
+In settings Add to your middleware classes
+
+
+MIDDLEWARE_CLASSES = (
+    ...
+    'django_block_party.middleware.VimMiddleware',
+    ...
+
+add django_block_party/vim/django_block_party.vim to your ~/.vim/plugin/ or vim plugin path.
+
+open vim 
+
+:DBlock /rel/url/path 
