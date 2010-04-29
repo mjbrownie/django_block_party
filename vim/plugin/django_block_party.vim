@@ -1,7 +1,17 @@
 "Block view test Client {{{1
 python << EOP
+#import warnings
+#
+#def fxn():
+#warnings.warn("deprecated", DeprecationWarning)
+#
+#with warnings.catch_warnings():
+#warnings.simplefilter("ignore")
+#fxn()
+
 def django_block_view(url, post=None, strip_tags=False):
     
+
     from django.core.management import setup_environ
     import settings
     setup_environ(settings)
@@ -20,34 +30,7 @@ def django_block_view(url, post=None, strip_tags=False):
     else:
         r = c.post(url, data=post)
 
-#   except:
-#       vim.command("echo 'Failed to GET Response'")
-#       return
-
-    try:
-        #vim.command(vim.eval('g:split_command'))
-        vim.command('vert aboveleft 60 split ')
-        vim.command('enew')
-        vim.current.buffer.append(r.content.split('\n'))
-        vim.command('setlocal  ft=html')
-        vim.command("setlocal  foldmethod=marker")
-        vim.command("setlocal foldmarker={{{bp,bp}}}")
-        vim.command("setlocal foldlevel=0")
-        vim.command('syn match Ignore /{{{bp\d*/')
-        vim.command('syn match Ignore /bp}}}/')
-        vim.command('syn match Special /block:/')
-        try:
-            vim.command('silent %s/\s\+$//')
-            vim.command('silent g/^$/d')
-        except:
-            pass
-        vim.command('norm gg')
-        vim.command('set buftype=nofile')
-        vim.command("setlocal nomodifiable")
-        vim.command('nnoremap <buffer> <cr> :call DBP_find_block()<cr>')
-
-    except:
-        vim.command("echo 'Failed to append vim'")
+    return ''
 EOP
 fun! DBP_find_block()
 

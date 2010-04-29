@@ -30,7 +30,7 @@ from django.http import HttpResponse
 class VimMiddleware(object):
 
 
-    vimrequest = True
+    vimrequest = False
 
 
     def __init__(self):
@@ -51,7 +51,8 @@ class VimMiddleware(object):
 
     def process_response(self, request, response):
         if self.vimrequest:
-            return HttpResponse("Django Block Party Middleware\n\n%s" % "\n".join( [p.content() for p in self.processors]))
+            result = [p.content() for p in self.processors]
+            return response
         else:
             return response
 
@@ -59,7 +60,15 @@ class VimMiddleware(object):
 from django.template.loader_tags import BlockNode,IncludeNode
 
 
-class TemplateProcessor(object):
+class Processor(object):
+
+    def process_request(self, request):
+        pass
+
+    def process_response(self,request,response):
+        pass
+
+class TemplateProcessor(Processor):
 
     def __init__(self):
         self.templates = []
@@ -72,29 +81,58 @@ class TemplateProcessor(object):
         #return "\n".join(t['template'].name for t in self.templates if 'template' in t)
         c = ""
         rendered_blocks = []
-        
+
         for t in self.templates:
-            c += ("\nTemplate %s {{{bp1" % t['template'].name)
+            c += (u"\nTemplate %s {{{bp1" % t['template'].name)
             #if 'context' in t:
             #   for k in t['context']:
             #       c += ("\n    v: %s" % k)
                     #c += ("        %s" % t['context'][k] )
 
-            c += "\n    Blocks:"
-            for n in t['template'].nodelist.get_nodes_by_type(BlockNode):
-                c+= ("\n        block: %s" % str(n.name))
+            c += u"\n    Blocks:"
+            for n in t['template'].nodelist.get_nodes_by_type((BlockNode,IncludeNode)):
+                c+= (u"\n        block: %s" % str(n.name))
+                try:
+                    c+= (u"\n        template_name: %s" % str(n.template_name))
+                except:
+                    pass
                 try:
                     ren = n.render(t['context'])
-                    if not str( ren ) == "" and not n.name in rendered_blocks:
+                    if not unicode( ren ) == u"" and not n.name in rendered_blocks:
                         rendered_blocks.append(n.name)
-                        c+= "\n             render: {{{bp"
-                        c+= ("\n            %s" % ren.replace("\n","\n            "))
-                        c+= "\n             bp}}}"
+                        c+= u"\n             render: {{{bp"
+                        c+= (u"\n            %s" % ren.replace(u"\n",u"\n            "))
+                        c+= u"\n             bp}}}"
                 except:
-                    c+= ("\n            (Context Render Failed)")
+                    c+= (u"\n            (Context Render Failed)")
 
             for n in t['template'].nodelist.get_nodes_by_type(IncludeNode):
-                c+= ("\n    include: %s" % (str(n.name) ))
+                c+= (u"\n    include: %s" % (str(n.name) ))
 
-        return c
+        import vim
+        vim.command("tabnew")
+        vim.command('vert aboveleft 60 split ')
+        vim.command('enew')
+        vim.command("set nowrap")
+        #vim.command("set fileencoding=utf-8")
+        vim.current.buffer.append(str(c).split('\n'))
+        vim.command('setlocal  ft=html')
+        vim.command("setlocal  foldmethod=marker")
+        vim.command("setlocal foldmarker={{{bp,bp}}}")
+        vim.command("setlocal foldlevel=0")
+        vim.command('syn match Ignore /{{{bp\d*/')
+        vim.command('syn match Ignore /bp}}}/')
+        vim.command('syn match Special /block:/')
+        try:
+            vim.command('silent %s/\s\+$//')
+            vim.command('silent g/^$/d')
+        except:
+            pass
+        vim.command('norm gg')
+        vim.command('set buftype=nofile')
+        vim.command("setlocal nomodifiable")
+        vim.command('nnoremap <buffer> <cr> :call DBP_find_block()<cr>')
+        vim.command('nnoremap <buffer> <mouse> :call DBP_find_block()<cr>')
+
+        return ""
         #return "\n".join(str(t) for t in self.templates if 'template' in t)
