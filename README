@@ -18,3 +18,7 @@ add django_block_party/vim/django_block_party.vim to your ~/.vim/plugin/ or vim 
 open vim 
 
 :DBlock /rel/url/path 
+
+screenshot:
+
+http://www.ascetinteractive.com.au/vimtrac/raw-attachment/wiki/OtherVimPlugins/screenshot.jpg
