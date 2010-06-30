@@ -1,7 +1,8 @@
 Django Block Party
 
 A django middleware component and vim plugin that offers an enhanced view of a
-requests template tree and block nodes
+requests template tree and block nodes. Making it easier to navigate through
+templates.
 
 usage:
 
@@ -13,12 +14,30 @@ MIDDLEWARE_CLASSES = (
     'django_block_party.middleware.VimMiddleware',
     ...
 
+BLOCK_PARTY_ROOT = '/sites/your_site/some_log_dir/your_server_can_write_to/'
+
+INTERNAL_IPS = ('yourip...')
+DEBUG = True #middleware should do nothing if not in debug.
+(DEFAULTS TO MEDIA_ROOT)
+
 add django_block_party/vim/django_block_party.vim to your ~/.vim/plugin/ or vim plugin path.
 
-open vim 
+Any request running from INTERNAL_IPS will then write a file .dbp.template_view
 
-:DBlock /rel/url/path 
+open vim in the /sites/your_site/ directory
+:DBPOpen
+
+This should open a block tree view. It has all the views blocks and their internal renderings.
+Hitting <enter> will  call :find path/to/template, which will open the template
+assuming you have the vim 'path' set up correctly.
+
+If you need a script to add your apps template paths try this.
+
+http://www.vim.org/scripts/script.php?script_id=2781
+
+or you might have your own
+method
 
 screenshot:
-
 http://www.ascetinteractive.com.au/vimtrac/raw-attachment/wiki/OtherVimPlugins/screenshot.jpg
+

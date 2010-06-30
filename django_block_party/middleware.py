@@ -27,30 +27,25 @@ Template.__init__ = new_template_init
 
 from django.http import HttpResponse
 
+try:
+    DBP_PATH = settings.BLOCK_PARTY_ROOT
+except:
+    DBP_PATH = settings.MEDIA_ROOT
+
 class VimMiddleware(object):
 
-
-    vimrequest = False
-
+    internal_request = True
 
     def __init__(self):
-        try:
-            import vim
-            self.processors = []
-            self.processors.append(TemplateProcessor())
-            self.vimrequest = True
-
-        except ImportError:
-            #todo in temp for ipython
-            self.processors = []
-            self.processors.append(TemplateProcessor())
-            return None
+        self.processors = []
+        self.processors.append(TemplateProcessor())
+        self.vimrequest = True
 
     def process_request(self,request):
         pass
 
     def process_response(self, request, response):
-        if self.vimrequest:
+        if ( request.META['REMOTE_ADDR'] in settings.INTERNAL_IPS and settings.DEBUG ):
             result = [p.content() for p in self.processors]
             return response
         else:
@@ -79,60 +74,35 @@ class TemplateProcessor(Processor):
 
     def content(self):
         #return "\n".join(t['template'].name for t in self.templates if 'template' in t)
-        c = ""
+        fp = open('%s/.dbp.template_view' % DBP_PATH , 'w')
         rendered_blocks = []
 
         for t in self.templates:
-            c += (u"\nTemplate %s {{{bp1" % t['template'].name)
+            fp.write(u"\nTemplate %s {{{bp1" % t['template'].name)
             #if 'context' in t:
             #   for k in t['context']:
             #       c += ("\n    v: %s" % k)
                     #c += ("        %s" % t['context'][k] )
 
-            c += u"\n    Blocks:"
-            for n in t['template'].nodelist.get_nodes_by_type((BlockNode,IncludeNode)):
-                c+= (u"\n        block: %s" % str(n.name))
-                try:
-                    c+= (u"\n        template_name: %s" % str(n.template_name))
-                except:
+            fp.write( u"\n    Blocks:")
+            #for n in t['template'].nodelist.get_nodes_by_type((BlockNode,IncludeNode)):
+            for n in t['template'].nodelist.get_nodes_by_type((BlockNode)):
+                if isinstance(n,IncludeNode):
                     pass
-                try:
-                    ren = n.render(t['context'])
-                    if not unicode( ren ) == u"" and not n.name in rendered_blocks:
-                        rendered_blocks.append(n.name)
-                        c+= u"\n             render: {{{bp"
-                        c+= (u"\n            %s" % ren.replace(u"\n",u"\n            "))
-                        c+= u"\n             bp}}}"
-                except:
-                    c+= (u"\n            (Context Render Failed)")
+                else:
+                    fp.write(u"\n        block: %s" % str(n.name))
+                    try:
+                        fp.write(u"\n        template_name: %s" % str(n.template_name))
+                    except:
+                        pass
+                    try:
+                        ren = n.render(t['context'])
+                        if not unicode( ren ) == u"" and not n.name in rendered_blocks:
+                            rendered_blocks.append(n.name)
+                            fp.write( u"\n             render: {{{bp" )
+                            fp.write(u"\n            %s" % ren.replace(u"\n",u"\n            "))
+                            fp.write(u"\n             bp}}}")
+                    except:
+                        fp.write(u"\n            (Context Render Failed)")
 
-            for n in t['template'].nodelist.get_nodes_by_type(IncludeNode):
-                c+= (u"\n    include: %s" % (str(n.name) ))
-
-        import vim
-        vim.command("tabnew")
-        vim.command('vert aboveleft 60 split ')
-        vim.command('enew')
-        vim.command("set nowrap")
-        #vim.command("set fileencoding=utf-8")
-        vim.current.buffer.append(str(c).split('\n'))
-        vim.command('setlocal  ft=html')
-        vim.command("setlocal  foldmethod=marker")
-        vim.command("setlocal foldmarker={{{bp,bp}}}")
-        vim.command("setlocal foldlevel=0")
-        vim.command('syn match Ignore /{{{bp\d*/')
-        vim.command('syn match Ignore /bp}}}/')
-        vim.command('syn match Special /block:/')
-        try:
-            vim.command('silent %s/\s\+$//')
-            vim.command('silent g/^$/d')
-        except:
-            pass
-        vim.command('norm gg')
-        vim.command('set buftype=nofile')
-        vim.command("setlocal nomodifiable")
-        vim.command('nnoremap <buffer> <cr> :call DBP_find_block()<cr>')
-        vim.command('nnoremap <buffer> <mouse> :call DBP_find_block()<cr>')
-
-        return ""
-        #return "\n".join(str(t) for t in self.templates if 'template' in t)
+        fp.close()

@@ -9,28 +9,20 @@ python << EOP
 #warnings.simplefilter("ignore")
 #fxn()
 
-def django_block_view(url, post=None, strip_tags=False):
-    
+import warnings
+warnings.filterwarnings('ignore')
+from django.core.management import setup_environ
+import settings
+setup_environ(settings)
 
-    from django.core.management import setup_environ
-    import settings
-    setup_environ(settings)
+import vim
 
-    import vim
-    from django.test.client import Client
+try:
+    vim.command ('let g:django_block_party_directory = "%s"' % settings.BLOCK_PARTY_ROOT )
+except:
+    vim.command ('let g:django_block_party_directory = "%s"' % settings.MEDIA_ROOT )
 
-    if not 'django_block_party.middleware.VimMiddleware' in settings.MIDDLEWARE_CLASSES:
-        print "Django Block Party needs django_block_party.middleware.VimMiddleware to work"
-        return ''
 
-    c = Client()
-
-    if not post:
-        r = c.get(url)
-    else:
-        r = c.post(url, data=post)
-
-    return ''
 EOP
 fun! DBP_find_block()
 
@@ -52,6 +44,31 @@ fun! DBP_find_block()
     endif
 endfun
 
-com! -nargs=1 DBlock  python django_block_view(<f-args>)
+"com! -nargs=1 DBlock  python django_block_view(<f-args>)
 
+fun DBP_template_view()
+    tabnew
+    vert aboveleft 60 split
+    exec "edit " . g:django_block_party_directory .  "/.dbp.template_view"
+    set nowrap
+    set fileencoding=utf-8
+    setlocal  ft=html
+    setlocal  foldmethod=marker
+    setlocal foldmarker={{{bp,bp}}}
+    setlocal foldlevel=0
+    syn match Ignore /{{{bp\d*/
+    syn match Ignore /bp}}}/
+    syn match Special /block:/
+    try
+        silent %s/\s\+$//
+        silent g/^$/d
+    finally
+    endtry
+    norm gg
+    set buftype=nofile
+    setlocal nomodifiable
+    nnoremap <buffer> <cr> :call DBP_find_block()<cr>
+    nnoremap <buffer> <mouse> :call DBP_find_block()<cr>
+endfun
 
+command DBPOpen call DBP_template_view()
