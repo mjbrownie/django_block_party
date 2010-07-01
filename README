@@ -15,10 +15,10 @@ MIDDLEWARE_CLASSES = (
     ...
 
 BLOCK_PARTY_ROOT = '/sites/your_site/some_log_dir/your_server_can_write_to/'
+(DEFAULTS TO MEDIA_ROOT)
 
 INTERNAL_IPS = ('yourip...')
 DEBUG = True #middleware should do nothing if not in debug.
-(DEFAULTS TO MEDIA_ROOT)
 
 add django_block_party/vim/django_block_party.vim to your ~/.vim/plugin/ or vim plugin path.
 
