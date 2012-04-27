@@ -83,36 +83,42 @@ class TemplateProcessor(Processor):
         fp = open('%s/.dbp.template_view' % DBP_PATH, 'w')
         rendered_blocks = []
 
-        for t in self.templates:
-            fp.write(u"\nTemplate %s {{{bp1" % t['template'].name)
-            #if 'context' in t:
-            #   for k in t['context']:
-            #       c += ("\n    v: %s" % k)
-                    #c += ("        %s" % t['context'][k] )
+        temps = []
 
-            fp.write(u"\n    Blocks:")
-            #for n in t['template'].nodelist.get_nodes_by_type(
-            # (BlockNode,IncludeNode)):
-            for n in t['template'].nodelist.get_nodes_by_type((BlockNode)):
-                if isinstance(n, IncludeNode):
-                    pass
-                else:
-                    fp.write(u"\n        block: %s" % str(n.name))
-                    try:
-                        fp.write(u"\n        template_name: %s" %
-                                str(n.template_name))
-                    except:
+        for t in self.templates:
+
+            if not t['template'].name in temps:
+                temps.append(t['template'].name)
+
+                fp.write(u"\nTemplate %s {{{bp1" % t['template'].name)
+                #if 'context' in t:
+                #   for k in t['context']:
+                #       c += ("\n    v: %s" % k)
+                        #c += ("        %s" % t['context'][k] )
+
+                fp.write(u"\n    Blocks:")
+                #for n in t['template'].nodelist.get_nodes_by_type(
+                # (BlockNode,IncludeNode)):
+                for n in t['template'].nodelist.get_nodes_by_type((BlockNode)):
+                    if isinstance(n, IncludeNode):
                         pass
-                    try:
-                        ren = n.render(t['context'])
-                        if not unicode(ren) == u"" \
-                                and not n.name in rendered_blocks:
-                            rendered_blocks.append(n.name)
-                            fp.write(u"\n             render: {{{bp")
-                            fp.write(u"\n            %s" % \
-                                    ren.replace(u"\n", u"\n            "))
-                            fp.write(u"\n             bp}}}")
-                    except:
-                        fp.write(u"\n            (Context Render Failed)")
+                    else:
+                        fp.write(u"\n        block: %s" % str(n.name))
+                        try:
+                            fp.write(u"\n        template_name: %s" %
+                                    str(n.template_name))
+                        except:
+                            pass
+                        try:
+                            ren = n.render(t['context'])
+                            if not unicode(ren) == u"" \
+                                    and not n.name in rendered_blocks:
+                                rendered_blocks.append(n.name)
+                                fp.write(u"\n             render: {{{bp")
+                                fp.write(u"\n            %s" % \
+                                        ren.replace(u"\n", u"\n            "))
+                                fp.write(u"\n             bp}}}")
+                        except:
+                            fp.write(u"\n            (Context Render Failed)")
 
         fp.close()
