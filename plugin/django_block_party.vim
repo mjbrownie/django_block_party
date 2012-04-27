@@ -1,4 +1,8 @@
 "Block view test Client {{{1
+""TODO django settings module is hardcoded!
+if !filereadable('settings.py')
+    finish
+endif
 python << EOP
 #import warnings
 #
