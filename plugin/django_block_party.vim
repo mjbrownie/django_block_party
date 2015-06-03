@@ -1,8 +1,5 @@
 "Block view test Client {{{1
 ""TODO django settings module is hardcoded!
-if !filereadable('settings.py')
-    finish
-endif
 python << EOP
 #import warnings
 #
@@ -12,20 +9,19 @@ python << EOP
 #with warnings.catch_warnings():
 #warnings.simplefilter("ignore")
 #fxn()
-
 import warnings
+import os
 warnings.filterwarnings('ignore')
-from django.core.management import setup_environ
-import settings
-setup_environ(settings)
 
-import vim
+if 'DJANGO_SETTINGS_MODULE' in os.environ:
+    from django.conf import settings
+    from django.template.loader import get_template
+    import vim
 
-try:
-    vim.command ('let g:django_block_party_directory = "%s"' % settings.BLOCK_PARTY_ROOT )
-except:
-    vim.command ('let g:django_block_party_directory = "%s"' % settings.MEDIA_ROOT )
-
+    try:
+        vim.command ('let g:django_block_party_directory = "%s"' % settings.BLOCK_PARTY_ROOT )
+    except:
+        vim.command ('let g:django_block_party_directory = "%s"' % '/tmp/')
 
 EOP
 fun! DBP_find_block()
@@ -53,26 +49,7 @@ endfun
 fun DBP_template_view()
     tabnew
     vert aboveleft 60 split
-    exec "edit " . g:django_block_party_directory .  "/.dbp.template_view"
-    set nowrap
-    set fileencoding=utf-8
-    setlocal  ft=html
-    setlocal  foldmethod=marker
-    setlocal foldmarker={{{bp,bp}}}
-    setlocal foldlevel=0
-    syn match Ignore /{{{bp\d*/
-    syn match Ignore /bp}}}/
-    syn match Special /block:/
-    try
-        silent %s/\s\+$//
-        silent g/^$/d
-    finally
-    endtry
-    norm gg
-    set buftype=nofile
-    setlocal nomodifiable
-    nnoremap <buffer> <cr> :call DBP_find_block()<cr>
-    nnoremap <buffer> <mouse> :call DBP_find_block()<cr>
+    exec "Explore " . g:django_block_party_directory .  "/.dbp/"
 endfun
 
 command DBPOpen call DBP_template_view()
